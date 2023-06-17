@@ -60,6 +60,17 @@ function Prompt-YesOrNo($question)
     return $false
 }
 
+function Show-HelpMessage
+{
+    Write-Host ("To obtain an access token, follow the steps in the getting started and authentication guides: `n" +
+        "https://developer.goto.com/guides/Get%20Started/00_Ref-Get-Started/ `n`n" +
+
+        "This can be done from a Postman request: `n" +
+        "1. Go to the `"Authorization`" tab and select `"OAuth 2.0`". `n" +
+        "2. Check the box that says `"Authorize using browser`" and use the `"Callback URL`" as the `"Redirect URL`" in your GoTo OAuth client configuration. `n" +
+        "3. Fill out the section under `"Configure New Token`" and click `"Get New Access Token`". `n") -ForegroundColor $infoColor
+}
+
 function Get-PhoneNumbers($accessToken)
 {
     $url = "https://api.goto.com/voice-admin/v1/phone-numbers"
@@ -208,17 +219,7 @@ Initialize-ColorScheme
 Initialize-AccountInfo
 Show-Introduction
 $needHelp = Prompt-YesOrNo "Need help obtaining an access token for the GoTo API?"
-if ($needHelp)
-{
-    Write-Host ("To obtain an access token, follow the steps in the getting started and authentication guides: `n" +
-    "https://developer.goto.com/guides/Get%20Started/00_Ref-Get-Started/ `n`n" +
-
-    "This can be done from a Postman request: `n" +
-    "1. Go to the `"Authorization`" tab and select `"OAuth 2.0`". `n" +
-    "2. Check the box that says `"Authorize using browser`" and use the `"Callback URL`" as the `"Redirect URL`" in your GoTo OAuth client configuration. `n" +
-    "3. Fill out the section under `"Configure New Token`" and click `"Get New Access Token`". `n") -ForegroundColor $infoColor
-}
-
+if ($needHelp) { Show-HelpMessage }
 $accessToken = Prompt-AuthToken
 $includeRoutingInfo = Prompt-YesOrNo "Would you like to include routing info? (takes longer)"
 $apiResponses = Get-PhoneNumbers $accessToken
