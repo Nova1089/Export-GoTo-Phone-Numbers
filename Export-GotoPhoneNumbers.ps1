@@ -19,7 +19,7 @@ function Initialize-ColorScheme
     $script:successColor = "Green"
     $script:infoColor = "DarkCyan"
     $script:failColor = "Red"
-    # warning color is yellow, but that is built into Write-Warning
+    $script:warningColor = "Yellow"
 }
 
 function Initialize-AccountInfo
@@ -167,7 +167,7 @@ function Get-PhoneNumberInfo($record, [switch]$includeRoutingInfo)
     {
         if ($record.routeTo.type -eq "EXTENSION")
         {
-            $extension = Get-ExtensionById -accessToken $accessToken -id $record.routeTo.id
+            $extension = Get-ExtensionById -accessToken $accessToken -id $record.routeTo.id -phoneNumber $record.number
 
             if ($extension.number)
             {
@@ -190,7 +190,7 @@ function Get-PhoneNumberInfo($record, [switch]$includeRoutingInfo)
     return $info
 }
 
-function Get-ExtensionById($accessToken, $id)
+function Get-ExtensionById($accessToken, $id, $phoneNumber)
 {
     $url = "https://api.goto.com/voice-admin/v1/extensions/$id"
 
@@ -199,7 +199,21 @@ function Get-ExtensionById($accessToken, $id)
         Accept = "application/json"
     }
 
-    return SafelyInvoke-RestMethod -Uri $url -Method "Get" -Headers $headers
+    try
+    {
+        $response = Invoke-RestMethod -Uri $url -Method "Get" -Headers $headers
+    }
+    catch
+    {
+        Write-Warning ("Was unable to get extension for $phoneNumber. `n" +
+        "This might be because the extension is a dial plan or other resouce, and GoTo's API is not working correctly when getting this resource by the extension ID.")
+
+        return [PSCustomObject]@{
+            name = $id
+        }
+    }
+
+    return $response
 }
 
 function Get-PhoneNumberById($accessToken, $id)
